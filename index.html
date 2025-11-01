@@ -113,19 +113,20 @@
 
                 <!-- Submit Button -->
                 <div class="flex justify-end pt-4">
-                  <button type="submit" class="bg-sky-600 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-all duration-200">
+                  <button type="submit" id="submit-btn" class="bg-sky-600 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-all duration-200">
                     Submit Order
                   </button>
+                   <p id="submission-status" class="ml-4 flex items-center text-sm font-medium"></p>
                 </div>
             </form>
         </main>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {https://hook.us2.make.com/mryq3zqwv5c4hlabyko7o6326395myoq
+        document.addEventListener('DOMContentLoaded', () => {
             // --- CONFIGURATION ---
-            // !!! IMPORTANT: Replace this with your actual Make.com webhook URL !!!
-            const WEBHOOK_URL = 'YOUR_MAKE_COM_WEBHOOK_URL_HERE'; 
+            // !!! IMPORTANT: This should be your actual Make.com webhook URL !!!
+            const WEBHOOK_URL = 'https://hook.us2.make.com/mryq3zqwv5c4hlabyko7o6326395myoq'; 
 
             // --- CONSTANTS ---
             const PRODUCTS = ['Signature Chocolate Cake', 'Red Velvet Delight', 'Classic Vanilla Bean', 'Custom Themed Cake', 'Cupcake Box (12pcs)'];
@@ -139,7 +140,8 @@
             const form = document.getElementById('order-form');
             const orderItemsContainer = document.getElementById('order-items-container');
             const addOrderItemBtn = document.getElementById('add-order-item-btn');
-            const submitBtn = form.querySelector('button[type="submit"]');
+            const submitBtn = document.getElementById('submit-btn');
+            const submissionStatus = document.getElementById('submission-status');
             
             // --- STATE ---
             let itemCount = 0;
@@ -174,6 +176,7 @@
                             ${createSelectHTML('units', unitOptions, 1, 'Units', `units-${id}`)}
                             <div class="sm:col-span-2 md:col-span-3 lg:col-span-2">
                                 <label for="greeting-${id}" class="block text-sm font-medium text-slate-600 mb-1">Greeting Message</label>
+
                                 <input id="greeting-${id}" name="greeting" type="text" value="" placeholder="e.g., Happy Birthday!" class="form-input">
                             </div>
                         </div>
@@ -191,8 +194,8 @@
                     const div = document.createElement('div');
                     div.className = 'flex items-center';
                     div.innerHTML = `
-                        <input id="${name}-${option.replace(/\s/g, '-')}" name="${name}" type="radio" value="${option}" class="form-radio" ${options.indexOf(option) === 0 ? 'checked' : ''}>
-                        <label for="${name}-${option.replace(/\s/g, '-')}" class="ml-3 block text-sm font-medium text-slate-700">${option}</label>
+                        <input id="${name}-${option.replace(/[\s/]/g, '-')}" name="${name}" type="radio" value="${option}" class="form-radio" ${options.indexOf(option) === 0 ? 'checked' : ''}>
+                        <label for="${name}-${option.replace(/[\s/]/g, '-')}" class="ml-3 block text-sm font-medium text-slate-700">${option}</label>
                     `;
                     container.appendChild(div);
                 });
@@ -235,16 +238,15 @@
             const resetForm = () => {
                 form.reset();
                 document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
-                document.querySelectorAll('.order-item-row').forEach((item, index) => {
-                    if (index > 0) item.remove();
-                });
-                itemCount = 1;
-                updateRemoveButtons();
+                orderItemsContainer.innerHTML = '';
+                addOrderItem();
                  // Reset radio groups to default
                 document.querySelector('input[name="deliveryTimeSlot"]').checked = true;
                 document.querySelector('input[name="source"]').checked = true;
                 document.getElementById('otherTimeSlot').classList.add('hidden');
                 document.getElementById('otherSource').classList.add('hidden');
+                document.getElementById('otherTimeSlot').required = false;
+                document.getElementById('otherSource').required = false;
 
             };
 
@@ -267,29 +269,59 @@
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
-                if (WEBHOOK_URL === 'YOUR_MAKE_COM_WEBHOOK_URL_HERE') {
-                    alert('Please update the WEBHOOK_URL in the script with your actual Make.com webhook URL.');
+                if (WEBHOOK_URL.includes('YOUR_MAKE_COM_WEBHOOK_URL_HERE')) {
+                    submissionStatus.textContent = 'Please update Webhook URL!';
+                    submissionStatus.className = 'ml-4 flex items-center text-sm font-medium text-red-600';
                     return;
                 }
-
+                
                 const originalBtnText = submitBtn.textContent;
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Submitting...';
                 submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                submissionStatus.textContent = '';
 
-                const formData = new FormData(e.target);
-                const data = Object.fromEntries(formData.entries());
+
+                const formData = new FormData(form);
+                const data = {};
+                
+                // Manually process form data to handle radio buttons and text fields correctly
+                for (const [key, value] of formData.entries()) {
+                    if (key === 'deliveryTimeSlot' && value === 'Other') {
+                        data[key] = formData.get('otherTimeSlot');
+                    } else if (key === 'source' && value === 'Other') {
+                        data[key] = formData.get('otherSource');
+                    } else if (key !== 'otherTimeSlot' && key !== 'otherSource') {
+                       if (data[key]) {
+                          if (!Array.isArray(data[key])) {
+                            data[key] = [data[key]];
+                          }
+                          data[key].push(value);
+                        } else {
+                          data[key] = value;
+                        }
+                    }
+                }
 
                 data.orders = Array.from(document.querySelectorAll('.order-item-row')).map(row => ({
                     id: row.dataset.id,
-                    product: row.querySelector('[name="product"]').value,
-                    size: row.querySelector('[name="size"]').value,
-                    flavour: row.querySelector('[name="flavour"]').value,
-                    eggless: row.querySelector('[name="eggless"]').checked,
-                    candles: parseInt(row.querySelector('[name="candles"]').value, 10),
-                    units: parseInt(row.querySelector('[name="units"]').value, 10),
-                    greeting: row.querySelector('[name="greeting"]').value,
+                    product: row.querySelector('select[name="product"]').value,
+                    size: row.querySelector('select[name="size"]').value,
+                    flavour: row.querySelector('select[name="flavour"]').value,
+                    eggless: row.querySelector('input[name="eggless"]').checked,
+                    candles: parseInt(row.querySelector('select[name="candles"]').value, 10),
+                    units: parseInt(row.querySelector('select[name="units"]').value, 10),
+                    greeting: row.querySelector('input[name="greeting"]').value,
                 }));
+
+                // Remove fields that are now part of 'orders'
+                delete data.product;
+                delete data.size;
+                delete data.flavour;
+                delete data.eggless;
+                delete data.candles;
+                delete data.units;
+                delete data.greeting;
 
                 try {
                     const response = await fetch(WEBHOOK_URL, {
@@ -302,25 +334,28 @@
                         throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
                     }
                     
-                    submitBtn.textContent = 'Submitted Successfully!';
+                    submitBtn.textContent = 'Submitted!';
                     submitBtn.classList.remove('bg-sky-600', 'hover:bg-sky-700');
                     submitBtn.classList.add('bg-green-600');
-                    alert('Order submitted successfully!');
+                    submissionStatus.textContent = 'Order submitted successfully!';
+                    submissionStatus.className = 'ml-4 flex items-center text-sm font-medium text-green-600';
+                    
                     resetForm();
 
                 } catch (error) {
                     console.error('Submission Error:', error);
-                    submitBtn.textContent = 'Submission Failed!';
+                    submitBtn.textContent = 'Failed!';
                     submitBtn.classList.remove('bg-sky-600', 'hover:bg-sky-700');
                     submitBtn.classList.add('bg-red-600');
-                    alert(`An error occurred: ${error.message}. Please try again.`);
-
+                    submissionStatus.textContent = 'Submission Error. Please try again.';
+                    submissionStatus.className = 'ml-4 flex items-center text-sm font-medium text-red-600';
                 } finally {
                     setTimeout(() => {
                         submitBtn.textContent = originalBtnText;
                         submitBtn.disabled = false;
                         submitBtn.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-green-600', 'bg-red-600');
                         submitBtn.classList.add('bg-sky-600', 'hover:bg-sky-700');
+                        submissionStatus.textContent = '';
                     }, 3000);
                 }
             });
