@@ -1,332 +1,344 @@
 <!DOCTYPE html>
-
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <title>Formulario de Pedido de Tartas</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍰 Formulario de Pedido de Repostería</title>
     <style>
+        /* Estilos Generales y Reseteo */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+        }
+        h1 {
+            color: #d63384; /* Color de repostería/pastelería */
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-        body { font-family: Arial, sans-serif; padding: 20px; }
+        /* Estilos del Cliente */
+        #cliente-group {
+            margin-bottom: 25px;
+        }
+        #cliente-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        #cliente {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
 
-        #tabla-pedido { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        /* Estilos de la Tabla de Pedidos */
+        #tabla-pedido {
+            width: 100%;
+            border-collapse: separate; /* Para esquinas redondeadas */
+            border-spacing: 0;
+            margin-bottom: 20px;
+        }
+        #tabla-pedido th, #tabla-pedido td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        #tabla-pedido thead th {
+            background-color: #f8d7da; /* Fondo de encabezado ligero */
+            color: #333;
+            font-weight: bold;
+            border-top: 1px solid #e9ecef;
+        }
+        #tabla-pedido tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .item-row select, .item-row input[type="text"] {
+            width: 95%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        .item-row input[type="radio"] {
+            margin-right: 5px;
+        }
 
-        #tabla-pedido th, #tabla-pedido td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        /* Estilos de Botones */
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .add-btn {
+            background-color: #28a745; /* Verde */
+            color: white;
+        }
+        .add-btn:hover {
+            background-color: #1e7e34;
+        }
+        .delete-btn {
+            background-color: #dc3545; /* Rojo */
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .submit-btn {
+            background-color: #d63384; /* Rosa/Pastel */
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            margin-top: 30px;
+        }
+        .submit-btn:hover {
+            background-color: #b82a6f;
+        }
 
-        .item-row select { width: 90%; padding: 5px; }
-
-        .item-row input[type="radio"] { margin-right: 5px; }
-
-        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; cursor: pointer; }
-
-        .submit-btn { margin-top: 20px; }
-
+        /* Ajustes Responsivos */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                box-shadow: none;
+            }
+            body {
+                padding: 10px;
+            }
+            #tabla-pedido, #tabla-pedido thead, #tabla-pedido tbody, #tabla-pedido th, #tabla-pedido td, #tabla-pedido tr {
+                display: block; /* Muestra la tabla como bloques apilados */
+            }
+            #tabla-pedido thead {
+                display: none; /* Oculta el encabezado en móvil */
+            }
+            #tabla-pedido tr {
+                margin-bottom: 15px;
+                border: 1px solid #ced4da;
+                border-radius: 6px;
+            }
+            #tabla-pedido td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+                border-bottom: 1px solid #e9ecef;
+            }
+            #tabla-pedido td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                font-weight: bold;
+                text-align: left;
+            }
+            .delete-btn {
+                width: 100%;
+                margin-top: 5px;
+            }
+        }
     </style>
-
 </head>
-
 <body>
 
+    <div class="container">
+        <h1>🍰 Pedido de Repostería</h1>
 
-    <h1>📝 Tu Pedido Personalizado</h1>
+        <div id="cliente-group">
+            <label for="cliente">Nombre del Cliente:</label>
+            <input type="text" id="cliente" required placeholder="Introduce tu nombre o referencia de pedido">
+        </div>
 
+        <table id="tabla-pedido">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Cantidad</th>
+                    <th>Con Huevo</th>
+                    <th>Vegano</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpo-pedido">
+                </tbody>
+        </table>
 
-    <label for="cliente">Nombre del Cliente:</label>
-
-    <input type="text" id="cliente" required style="width: 300px; padding: 8px; margin-bottom: 15px;"><br>
-
-
-    <table id="tabla-pedido">
-
-        <thead>
-
-            <tr>
-
-                <th>Item</th>
-
-                <th>Cantidad</th>
-
-                <th>Con Huevo</th>
-
-                <th>Vegano</th>
-
-                <th>Acción</th>
-
-            </tr>
-
-        </thead>
-
-        <tbody id="cuerpo-pedido">
-
-            </tbody>
-
-    </table>
-
-
-    <button type="button" onclick="agregarFilaItem()">+ Añadir Otra Tarta</button>
-
-    <br>
-
-
-    <button type="submit" class="submit-btn" onclick="enviarDatosMake()">Enviar Pedido a Make.com</button>
-
+        <button type="button" class="add-btn" onclick="agregarFilaItem()">+ Añadir Otra Tarta</button>
+        
+        <button type="submit" class="submit-btn" onclick="enviarDatosMake()">Enviar Pedido</button>
+    </div>
 
     <script>
-
         // *** REEMPLAZA ESTA URL CON LA URL DE TU CUSTOM WEBHOOK DE MAKE.COM ***
+        const MAKE_WEBHOOK_URL = "LA_URL_DE_TU_WEBHOOK_DE_MAKE_AQUI"; 
 
-        const MAKE_WEBHOOK_URL = "LA_URL_DE_TU_WEBHOOK_DE_MAKE_AQUI";
-
-
-        const productos = ["Tarta Vainilla", "Tarta Chocolate", "Tarta Fresa", "Tarta Manzana"];
-
+        const productos = ["Tarta Vainilla", "Tarta Chocolate", "Tarta Fresa", "Tarta Manzana", "Tarta Limón"];
+        const cuerpo = document.getElementById('cuerpo-pedido');
 
         // 1. FUNCIÓN PARA AÑADIR UNA FILA DE ITEM
-
         function agregarFilaItem() {
-
-            const cuerpo = document.getElementById('cuerpo-pedido');
-
             const newRow = cuerpo.insertRow();
-
             newRow.className = 'item-row';
-
-           
+            const idUnico = Date.now(); // Para asegurar que los radios son únicos
 
             // Columna 1: Producto (Dropdown)
-
             let cell1 = newRow.insertCell(0);
-
+            cell1.setAttribute('data-label', 'Item:');
             let selectProducto = document.createElement('select');
-
             selectProducto.name = 'producto';
-
             productos.forEach(prod => {
-
                 let option = document.createElement('option');
-
                 option.value = prod;
-
                 option.textContent = prod;
-
                 selectProducto.appendChild(option);
-
             });
-
             cell1.appendChild(selectProducto);
 
-
             // Columna 2: Cantidad (Dropdown)
-
             let cell2 = newRow.insertCell(1);
-
+            cell2.setAttribute('data-label', 'Cantidad:');
             let selectCantidad = document.createElement('select');
-
             selectCantidad.name = 'cantidad';
-
             for (let i = 1; i <= 10; i++) {
-
                 let option = document.createElement('option');
-
                 option.value = i;
-
                 option.textContent = i;
-
                 selectCantidad.appendChild(option);
-
             }
-
             cell2.appendChild(selectCantidad);
-
-           
-
+            
             // Columna 3: Con Huevo (Radio Buttons)
-
             let cell3 = newRow.insertCell(2);
-
+            cell3.setAttribute('data-label', 'Con Huevo:');
             cell3.innerHTML = `
-
-                <input type="radio" name="huevo_${Date.now()}" value="Si" required> Si
-
-                <input type="radio" name="huevo_${Date.now()}" value="No" checked> No
-
+                <input type="radio" name="huevo_${idUnico}" value="Si" required> Si
+                <input type="radio" name="huevo_${idUnico}" value="No" checked> No
             `;
-
 
             // Columna 4: Vegano (Radio Buttons)
-
             let cell4 = newRow.insertCell(3);
-
+            cell4.setAttribute('data-label', 'Vegano:');
             cell4.innerHTML = `
-
-                <input type="radio" name="vegano_${Date.now()}" value="Si" checked> Si
-
-                <input type="radio" name="vegano_${Date.now()}" value="No" required> No
-
+                <input type="radio" name="vegano_${idUnico}" value="Si"> Si
+                <input type="radio" name="vegano_${idUnico}" value="No" checked required> No
             `;
-
-           
-
+            
             // Columna 5: Acción (Botón Eliminar)
-
             let cell5 = newRow.insertCell(4);
-
+            cell5.setAttribute('data-label', 'Acción:');
             let deleteButton = document.createElement('button');
-
-            deleteButton.textContent = 'X';
-
+            deleteButton.textContent = 'Eliminar';
+            deleteButton.className = 'delete-btn';
             deleteButton.onclick = function() {
-
                 cuerpo.removeChild(newRow);
-
+                // Si borramos todas las filas, añadimos una nueva para que no quede vacío
+                if (cuerpo.children.length === 0) {
+                     agregarFilaItem();
+                }
             };
-
             cell5.appendChild(deleteButton);
-
         }
-
 
         // Aseguramos que haya al menos una fila al cargar
-
-        agregarFilaItem();
-
-
-
-        // 2. FUNCIÓN PARA ENVIAR DATOS A MAKE.COM
-
-        async function enviarDatosMake() {
-
-            if (MAKE_WEBHOOK_URL === "LA_URL_DE_TU_WEBHOOK_DE_MAKE_AQUI") {
-
-                 alert("¡ERROR! Por favor, reemplaza la constante MAKE_WEBHOOK_URL en el código JS con tu URL de Webhook de Make.com.");
-
-                 return;
-
-            }
-
-           
-
-            const nombreCliente = document.getElementById('cliente').value.trim();
-
-            if (!nombreCliente) {
-
-                alert("Por favor, introduce el nombre del cliente.");
-
-                return;
-
-            }
-
-           
-
-            const filas = document.querySelectorAll('#cuerpo-pedido .item-row');
-
-            if (filas.length === 0) {
-
-                alert("Debes añadir al menos una tarta al pedido.");
-
-                return;
-
-            }
-
-
-            const itemsPedido = [];
-
-            filas.forEach(fila => {
-
-                const producto = fila.querySelector('select[name="producto"]').value;
-
-                const cantidad = fila.querySelector('select[name="cantidad"]').value;
-
-                const huevo = fila.querySelector('input[name^="huevo"]:checked').value;
-
-                const vegano = fila.querySelector('input[name^="vegano"]:checked').value;
-
-
-                itemsPedido.push({
-
-                    producto: producto,
-
-                    cantidad: parseInt(cantidad),
-
-                    con_huevo: huevo,
-
-                    es_vegano: vegano
-
-                });
-
-            });
-
-
-            // Objeto final que se enviará a Make.com
-
-            const payload = {
-
-                cliente: nombreCliente,
-
-                timestamp: new Date().toISOString(),
-
-                items: itemsPedido // ¡Esta es la lista de tartas que procesará Make.com!
-
-            };
-
-
-            console.log("Datos a enviar:", payload);
-
-           
-
-            // Envío de datos a Make.com usando Fetch API
-
-            try {
-
-                const response = await fetch(MAKE_WEBHOOK_URL, {
-
-                    method: 'POST',
-
-                    headers: {
-
-                        'Content-Type': 'application/json'
-
-                    },
-
-                    body: JSON.stringify(payload)
-
-                });
-
-               
-
-                if (response.ok) {
-
-                    alert('✅ ¡Pedido enviado correctamente a Make.com!');
-
-                    // Opcional: limpiar el formulario
-
-                    document.getElementById('cliente').value = '';
-
-                    document.getElementById('cuerpo-pedido').innerHTML = '';
-
-                    agregarFilaItem();
-
-                } else {
-
-                    alert('❌ Error al enviar el pedido a Make.com. Estado: ' + response.status);
-
-                }
-
-            } catch (error) {
-
-                alert('❌ Error de conexión: ' + error.message);
-
-            }
-
+        if (cuerpo.children.length === 0) {
+             agregarFilaItem();
         }
 
+        // 2. FUNCIÓN PARA ENVIAR DATOS A MAKE.COM
+        async function enviarDatosMake() {
+            if (MAKE_WEBHOOK_URL === "LA_URL_DE_TU_WEBHOOK_DE_MAKE_AQUI") {
+                 alert("¡ERROR! Por favor, reemplaza la constante MAKE_WEBHOOK_URL en el código JS con tu URL de Webhook de Make.com.");
+                 return;
+            }
+            
+            const nombreCliente = document.getElementById('cliente').value.trim();
+            if (!nombreCliente) {
+                alert("Por favor, introduce el nombre del cliente.");
+                return;
+            }
+            
+            const filas = document.querySelectorAll('#cuerpo-pedido .item-row');
+            if (filas.length === 0 || (filas.length === 1 && !filas[0].querySelector('select[name="producto"]'))) {
+                alert("Debes añadir al menos una tarta al pedido.");
+                return;
+            }
+
+            const itemsPedido = [];
+            filas.forEach(fila => {
+                const producto = fila.querySelector('select[name="producto"]').value;
+                const cantidad = fila.querySelector('select[name="cantidad"]').value;
+                const huevoInput = fila.querySelector('input[name^="huevo"]:checked');
+                const veganoInput = fila.querySelector('input[name^="vegano"]:checked');
+
+                // Solo si se seleccionó un producto, procesamos
+                if (producto) {
+                    itemsPedido.push({
+                        producto: producto,
+                        cantidad: parseInt(cantidad),
+                        con_huevo: huevoInput ? huevoInput.value : 'No Especificado',
+                        es_vegano: veganoInput ? veganoInput.value : 'No Especificado'
+                    });
+                }
+            });
+
+            if (itemsPedido.length === 0) {
+                 alert("Debes seleccionar y completar al menos una tarta.");
+                 return;
+            }
+
+            // Objeto final que se enviará a Make.com
+            const payload = {
+                cliente: nombreCliente,
+                timestamp: new Date().toISOString(),
+                items: itemsPedido // Lista de tartas
+            };
+
+            // Envío de datos a Make.com
+            try {
+                const response = await fetch(MAKE_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    alert('✅ ¡Pedido enviado correctamente! Revisaremos tu solicitud.');
+                    // Limpiar el formulario
+                    document.getElementById('cliente').value = '';
+                    cuerpo.innerHTML = '';
+                    agregarFilaItem(); 
+                } else {
+                    alert('❌ Error al enviar el pedido a Make.com. Por favor, inténtalo de nuevo.');
+                }
+            } catch (error) {
+                alert('❌ Error de conexión. Verifica la URL del Webhook.');
+            }
+        }
     </script>
 
-
 </body>
-
 </html>
 
